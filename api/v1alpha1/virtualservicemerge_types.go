@@ -169,14 +169,8 @@ outer:
 }
 
 func sanitizeRoutes(ctx reconciler.Context, routes []*v1alpha3.HTTPRoute) []*v1alpha3.HTTPRoute {
-	// sort.SliceStable(routes, func(i, j int) bool {
-	// 	_, iPrecedence := parsePrecedence(ctx, routes[i].Name)
-	// 	_, jPrecedence := parsePrecedence(ctx, routes[j].Name)
-	// 	return iPrecedence > jPrecedence
-	// })
 	routeByNamePart := map[string]bool{}
 	for i, route := range routes {
-		// name, _ := parsePrecedence(ctx, route.Name)
 		name := route.Name
 		if !routeByNamePart[name] {
 			routeByNamePart[name] = true
@@ -195,17 +189,6 @@ func sanitizeRoutes(ctx reconciler.Context, routes []*v1alpha3.HTTPRoute) []*v1a
 
 func parsePrecedence(ctx reconciler.Context, name string) (string, int64) {
 	return "", 0
-	// parts := strings.Split(name, "-")
-	// if len(parts) == 1 {
-	// 	return "", 0
-	// }
-	// orderStr := parts[len(parts)-1]
-	// order, err := strconv.ParseInt(orderStr, 10, 64)
-	// if err != nil {
-	// 	ctx.Logger().Error(err, "Bad order for route", "name", name, "order", orderStr)
-	// 	return orderStr, 0
-	// }
-	// return orderStr, order
 }
 
 func (in *VirtualServiceMerge) generateHttpRoutes() []*v1alpha3.HTTPRoute {
