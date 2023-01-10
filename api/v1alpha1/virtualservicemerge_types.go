@@ -18,13 +18,11 @@ package v1alpha1
 
 import (
 	"fmt"
+
 	"github.com/monimesl/operator-helper/reconciler"
 	"istio.io/api/networking/v1alpha3"
 	alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sort"
-	"strconv"
-	"strings"
 )
 
 // +kubebuilder:object:root=true
@@ -148,8 +146,8 @@ outer:
 				continue outer
 			}
 		}
-		// add
-		targetRoutes = append(targetRoutes, pRoute)
+		// prepend
+		targetRoutes = append([]*v1alpha3.HTTPRoute{pRoute}, targetRoutes...)
 	}
 	target.Spec.Http = sanitizeRoutes(ctx, targetRoutes)
 }
@@ -171,14 +169,15 @@ outer:
 }
 
 func sanitizeRoutes(ctx reconciler.Context, routes []*v1alpha3.HTTPRoute) []*v1alpha3.HTTPRoute {
-	sort.SliceStable(routes, func(i, j int) bool {
-		_, iPrecedence := parsePrecedence(ctx, routes[i].Name)
-		_, jPrecedence := parsePrecedence(ctx, routes[j].Name)
-		return iPrecedence > jPrecedence
-	})
+	// sort.SliceStable(routes, func(i, j int) bool {
+	// 	_, iPrecedence := parsePrecedence(ctx, routes[i].Name)
+	// 	_, jPrecedence := parsePrecedence(ctx, routes[j].Name)
+	// 	return iPrecedence > jPrecedence
+	// })
 	routeByNamePart := map[string]bool{}
 	for i, route := range routes {
-		name, _ := parsePrecedence(ctx, route.Name)
+		// name, _ := parsePrecedence(ctx, route.Name)
+		name := route.Name
 		if !routeByNamePart[name] {
 			routeByNamePart[name] = true
 			continue
@@ -195,17 +194,18 @@ func sanitizeRoutes(ctx reconciler.Context, routes []*v1alpha3.HTTPRoute) []*v1a
 }
 
 func parsePrecedence(ctx reconciler.Context, name string) (string, int64) {
-	parts := strings.Split(name, "-")
-	if len(parts) == 1 {
-		return "", 0
-	}
-	orderStr := parts[len(parts)-1]
-	order, err := strconv.ParseInt(orderStr, 10, 64)
-	if err != nil {
-		ctx.Logger().Error(err, "Bad order for route", "name", name, "order", orderStr)
-		return orderStr, 0
-	}
-	return orderStr, order
+	return "", 0
+	// parts := strings.Split(name, "-")
+	// if len(parts) == 1 {
+	// 	return "", 0
+	// }
+	// orderStr := parts[len(parts)-1]
+	// order, err := strconv.ParseInt(orderStr, 10, 64)
+	// if err != nil {
+	// 	ctx.Logger().Error(err, "Bad order for route", "name", name, "order", orderStr)
+	// 	return orderStr, 0
+	// }
+	// return orderStr, order
 }
 
 func (in *VirtualServiceMerge) generateHttpRoutes() []*v1alpha3.HTTPRoute {
